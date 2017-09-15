@@ -1,5 +1,6 @@
 package freestar.rvtest;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -19,15 +20,12 @@ import com.orhanobut.logger.Logger;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-import static freestar.rvtest.R.id.irc;
-import static freestar.rvtest.R.id.ntb;
-
 
 public class MainActivity extends AppCompatActivity implements MultAdapter.IDialogKeyBoard, BaseQuickAdapter.RequestLoadMoreListener {
 
-    @Bind(ntb)
+    @Bind(R.id.ntb)
     NormalTitleBar mNtb;
-    @Bind(irc)
+    @Bind(R.id.irc)
     RecyclerView mIrc;
     @Bind(R.id.id_editext)
     EditText mIdEditext;
@@ -35,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
     ImageView mIdFasong;
     @Bind(R.id.id_keyboard_vg)
     LinearLayout mIdKeyboardVg;
+    private boolean flag;
 
     //    private RecyclerView irc;
 //    private int mViewHeight;
@@ -55,20 +54,26 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
         Logger.init("FreeStar").methodCount(1).hideThreadInfo();
 
         mNtb.setTitleText("动态列表");
+        mNtb.findViewById(R.id.tv_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, MainActivity2.class));
+            }
+        });
 
         mManager = new TopLayoutManager(this);
         mIrc.setLayoutManager(mManager);
         View view = View.inflate(this, R.layout.item_zone_header, null);
 
         MultAdapter adapter = new MultAdapter(ContansData.backDatas(), this);
-        adapter.addHeaderView(view);
+//        adapter.addHeaderView(view);
         mIrc.setAdapter(adapter);
-        adapter.setOnLoadMoreListener(this, mIrc);
+//        adapter.setOnLoadMoreListener(this, mIrc);
 
         mIrc.addOnItemTouchListener(new OnItemChildClickListener() {
             @Override
             public void onSimpleItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                mPosition = position + 1;
+                mPosition = position;
                 updateEdittextBodyVisible(View.VISIBLE, null);
             }
         });
@@ -94,39 +99,16 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
         swipeRefreshLayoutVTO.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-//                Rect r = new Rect();
-//                getWindow().getDecorView().getWindowVisibleDisplayFrame(r);//应用程序 App 的区域 包括标题栏，但不包括状态栏
-//                int statusBarH = getStatusBarHeight();//状态栏高度
-//                int screenH = irc.getRootView().getHeight();//在这个 demo 中是整个屏幕的大小
-//                if (r.top != statusBarH) {// 判断是否为 沉浸式状态栏
-//                    //在这个demo中r.top代表的是状态栏高度，在沉浸式状态栏时r.top＝0，通过getStatusBarHeight获取状态栏高度
-//                    r.top = statusBarH;   // 这样设置时  当为沉浸式状态栏时 除去状态栏高度
-//                }
-//                int keyboardH = screenH - (r.bottom - r.top);// 键盘没弹出来时 keyboardH= r.top = statusBarH
-//                Logger.e(mPosition + "--screenH＝ " + screenH + " &keyboardH = " + keyboardH + " &r.bottom=" + r.bottom + " &top=" + r.top + " &statusBarH=" + statusBarH + " &mCurrentKeyboardH=" + mCurrentKeyboardH);
-//                if (keyboardH < 100) {//有变化时才处理，否则会陷入死循环
-//                    return;
-//                }
-//
-//                mCurrentKeyboardH = keyboardH;
-//                mScreenHeight = screenH;//应用屏幕的高度
-//                mEditTextBodyHeight = editTextBodyLl.getHeight();
-//
-//                //偏移listview
-//                if (irc != null && mCommentConfig != null) {
-//                    int index = mCommentConfig.circlePosition + irc.getHeaderContainer().getChildCount() + 1;
-//                    Logger.e("circlePosition:" + mCommentConfig.circlePosition + "-index-" + index);
-//                    mManager.scrollToPositionWithOffset(index, getListviewOffset(mCommentConfig));
-//                }
+
                 int height = mIdKeyboardVg.getHeight();
-                Logger.e("mPosition--" + mPosition + "-mViewHeight-" + height);
 
                 mManager.setOffset(height);
-                mIrc.smoothScrollToPosition(mPosition);
-//                mManager.smoothScrollToPosition();
-//                mManager.scrollToPosition();
-//                irc.scrollToPosition(mPosition);
-//                irc.scrollBy();
+                if (flag) {
+                    Logger.e("mPosition--" + mPosition + "-mViewHeight-" + height);
+                    mIrc.smoothScrollToPosition(mPosition);
+                    flag = false;
+                }
+
             }
         });
     }
@@ -134,20 +116,22 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
     @Override
     public void keyBoardOnClickListener(CommentConfig commentConfig) {
         //执行键盘弹出
-        if (mIdKeyboardVg.getVisibility() == View.VISIBLE) {
-            updateEdittextBodyVisible(View.GONE, commentConfig);
-        } else if (mIdKeyboardVg.getVisibility() == View.GONE) {
-            updateEdittextBodyVisible(View.VISIBLE, commentConfig);
-        }
+//        if (mIdKeyboardVg.getVisibility() == View.VISIBLE) {
+//            updateEdittextBodyVisible(View.GONE, commentConfig);
+//        } else if (mIdKeyboardVg.getVisibility() == View.GONE) {
+        updateEdittextBodyVisible(View.VISIBLE, commentConfig);
+//        }
     }
 
     private void updateEdittextBodyVisible(int visibility, CommentConfig commentConfig) {
-        Logger.e("visibility--" + visibility);
+//        Logger.e("visibility--" + visibility);
         mIdKeyboardVg.setVisibility(visibility);//LinearLayout
-        measureCircleItemHighAndCommentItemOffset(commentConfig);
+        flag = true;
+//        measureCircleItemHighAndCommentItemOffset(commentConfig);
+
         if (commentConfig != null && CommentConfig.Type.REPLY.equals(commentConfig.getCommentType())) {
-            mIdEditext.setHint("回复" + commentConfig.getName() + ":");
             mPosition = commentConfig.getCirclePosition();
+            mIdEditext.setHint("回复" + commentConfig.getName() + ":");
         } else {
             mIdEditext.setHint("说点什么吧");
         }
@@ -158,13 +142,14 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
         } else if (View.GONE == visibility) {
             //隐藏键盘
             KeyBordUtil.hideSoftKeyboard(mIdEditext);
+//            mIdKeyboardVg.setVisibility(View.GONE);
         }
 
-        int height = mIdKeyboardVg.getHeight();
-        Logger.e("mPosition--" + mPosition + "-mViewHeight-" + height);
-
-        mManager.setOffset(height);
-        mIrc.smoothScrollToPosition(mPosition);
+//        int height = mIdKeyboardVg.getHeight();
+//        Logger.e("mPosition--" + mPosition + "-mViewHeight-" + height);
+//
+//        mManager.setOffset(height);
+//        mIrc.smoothScrollToPosition(mPosition);
     }
 
     private void measureCircleItemHighAndCommentItemOffset(CommentConfig commentConfig) {
@@ -208,4 +193,23 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
     public void onLoadMoreRequested() {
 
     }
+
+//    protected void onResume() {
+//        super.onResume();
+//        //获取当前屏幕内容的高度
+//        screenHeight = getWindow().getDecorView().getHeight();
+//        getWindow().getDecorView().addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+//            @Override
+//            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+//                //获取View可见区域的bottom
+//                Rect rect = new Rect();
+//                getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+//                if(bottom!=0 && oldBottom!=0 && bottom - rect.bottom <= 0){
+//                    Toast.makeText(Main3Activity.this, "隐藏", Toast.LENGTH_SHORT).show();
+//                }else {
+//                    Toast.makeText(Main3Activity.this, "弹出", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+//    }
 }

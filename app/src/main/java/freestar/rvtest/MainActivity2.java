@@ -10,13 +10,15 @@ import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.listener.OnItemClickListener;
+import com.jaydenxiao.common.commonutils.KeyBordUtil;
 import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.ButterKnife;
-
 
 public class MainActivity2 extends AppCompatActivity {
 
@@ -25,10 +27,11 @@ public class MainActivity2 extends AppCompatActivity {
     private TopLayoutManager mManager;
     private int mCurrentKeyboardH;
     private int mScreenHeight;
-    private boolean isShow;
+    private boolean isOk;
     private EditText met;
     private int mPosition;
     private CommentConfig mCommentConfig;
+    private View mView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,7 @@ public class MainActivity2 extends AppCompatActivity {
         ButterKnife.bind(this);
 
         Logger.init("FreeStar").methodCount(1).hideThreadInfo();
+        mView = findViewById(R.id.ll);
 
         irc = (RecyclerView) findViewById(R.id.rv);
         met = ((EditText) findViewById(R.id.et));
@@ -57,31 +61,25 @@ public class MainActivity2 extends AppCompatActivity {
 
         irc.setAdapter(adapter);
 
-//        irc.addOnItemTouchListener(new BaseQuickAdapter.OnItemClickListener() {
-//            @Override
-//            public void onSimpleItemClick(BaseQuickAdapter adapter, View view, int position) {
-//
-//                int offset = mScreenHeight - mCurrentKeyboardH - mViewHeight - view.getHeight();   // 向上滑动是 -
-//
-//                Logger.e("mScreenHeight-" + mScreenHeight + "-view.getHeight()-" + view.getHeight() + "-mCurrentKeyboardH-" + mCurrentKeyboardH + "-mViewHeight-" + mViewHeight);
-//
-////                mManager.scrollToPositionWithOffset(position, offset);
-////                mManager.scrollToPositionWithOffset(200, 200);
-////                irc.scrollToPosition(99);
-//
-//            }
-//        });
+        irc.addOnItemTouchListener(new OnItemClickListener() {
+            @Override
+            public void onSimpleItemClick(BaseQuickAdapter adapter, View view, int position) {
+                mPosition = position;
+                if (mView.getVisibility() == View.VISIBLE) {
+                    mView.setVisibility(View.GONE);
+                    KeyBordUtil.hideSoftKeyboard(mView);
+                    isOk = true;
+                } else {
+                    mView.setVisibility(View.VISIBLE);
+                    KeyBordUtil.showSoftKeyboard(mView);
+                    isOk = true;
+                }
+            }
+        });
 
         //监听recyclerview滑动
         setViewTreeObserver();
 
-
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        mViewHeight = findViewById(R.id.ll).getHeight();
-        super.onWindowFocusChanged(hasFocus);
     }
 
     /**
@@ -116,7 +114,15 @@ public class MainActivity2 extends AppCompatActivity {
 //                    Logger.e("circlePosition:" + mCommentConfig.circlePosition + "-index-" + index);
 //                    mManager.scrollToPositionWithOffset(index, getListviewOffset(mCommentConfig));
 //                }
+
+//                if (isOk) {
+                Logger.e("position-" + mPosition + "-offset-" + mView.getHeight());
+
+                mManager.setOffset(mView.getHeight());
                 irc.smoothScrollToPosition(mPosition);
+                isOk = false;
+
+//                }
 //                mManager.smoothScrollToPosition();
 //                mManager.scrollToPosition();
 //                irc.scrollToPosition(mPosition);
