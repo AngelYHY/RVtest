@@ -68,18 +68,33 @@ public class MainActivity2 extends AppCompatActivity {
                 if (mView.getVisibility() == View.VISIBLE) {
                     mView.setVisibility(View.GONE);
                     KeyBordUtil.hideSoftKeyboard(mView);
-                    isOk = true;
+//                    isOk = true;
                 } else {
                     mView.setVisibility(View.VISIBLE);
                     KeyBordUtil.showSoftKeyboard(mView);
-                    isOk = true;
+//                    isOk = true;
                 }
             }
         });
 
         //监听recyclerview滑动
-        setViewTreeObserver();
+//        setViewTreeObserver();
 
+        SoftKeyBoardListener.setListener(this, new SoftKeyBoardListener.OnSoftKeyBoardChangeListener() {
+            @Override
+            public void keyBoardShow(int height) {
+                Logger.e("keyBoardShow height:" + height);
+                mManager.setOffset(mView.getHeight());
+                irc.smoothScrollToPosition(mPosition);
+            }
+
+            @Override
+            public void keyBoardHide(int height) {
+                Logger.e("keyBoardHide height:" + height);
+                mManager.setOffset(mView.getHeight());
+                irc.smoothScrollToPosition(mPosition);
+            }
+        });
     }
 
     /**

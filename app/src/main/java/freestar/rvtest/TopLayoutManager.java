@@ -60,9 +60,9 @@ public class TopLayoutManager extends LinearLayoutManager {
         // -1   boxStart - viewStart  1  boxEnd - viewEnd   0
         @Override
         public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
-            Logger.e(snapPreference + "-mOffset:" + (boxStart - viewStart) + "-boxStart-" + boxStart + "-viewStart-" + viewStart + "-viewEnd-" + viewEnd + "-boxEnd-" + boxEnd);
+            Logger.e(snapPreference + "-mOffset:" + (boxStart - viewStart) + "-boxStart-" + boxStart + "-viewStart-" + viewStart + "-viewEnd-" + viewEnd + "-boxEnd-" + boxEnd + "-mOffset-" + mOffset);
 //            return boxStart - viewStart;// 这里是关键，得到的就是置顶的偏移量
-            return super.calculateDtToFit(viewStart, viewEnd + mOffset, boxStart, boxEnd, 1);
+            return super.calculateDtToFit(viewStart, viewEnd, boxStart, boxEnd - mOffset, 1);
         }
     }
 }

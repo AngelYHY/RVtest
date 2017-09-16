@@ -20,12 +20,14 @@ import com.orhanobut.logger.Logger;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
+import static freestar.rvtest.R.id.irc;
+
 
 public class MainActivity extends AppCompatActivity implements MultAdapter.IDialogKeyBoard, BaseQuickAdapter.RequestLoadMoreListener {
 
     @Bind(R.id.ntb)
     NormalTitleBar mNtb;
-    @Bind(R.id.irc)
+    @Bind(irc)
     RecyclerView mIrc;
     @Bind(R.id.id_editext)
     EditText mIdEditext;
@@ -43,6 +45,11 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
 //    private boolean isShow;
 //    private EditText met;
     private int mPosition;
+    private MultAdapter mAdapter;
+    private int mHeight;
+    private int mSelectCommentItemOffset;
+    private int offset;
+    //    private int mSelectCircleItemH;
     //    private CommentConfig mCommentConfig;
 
     @Override
@@ -57,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
         mNtb.findViewById(R.id.tv_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, MainActivity2.class));
+                startActivity(new Intent(MainActivity.this, Main3Activity.class));
             }
         });
 
@@ -65,15 +72,15 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
         mIrc.setLayoutManager(mManager);
         View view = View.inflate(this, R.layout.item_zone_header, null);
 
-        MultAdapter adapter = new MultAdapter(ContansData.backDatas(), this);
-//        adapter.addHeaderView(view);
-        mIrc.setAdapter(adapter);
-//        adapter.setOnLoadMoreListener(this, mIrc);
+        mAdapter = new MultAdapter(ContansData.backDatas(), this);
+        mAdapter.addHeaderView(view);
+        mIrc.setAdapter(mAdapter);
+        mAdapter.setOnLoadMoreListener(this, mIrc);
 
         mIrc.addOnItemTouchListener(new OnItemChildClickListener() {
             @Override
             public void onSimpleItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                mPosition = position;
+                mPosition = position + mAdapter.getHeaderLayoutCount();
                 updateEdittextBodyVisible(View.VISIBLE, null);
             }
         });
@@ -87,7 +94,26 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
             }
         });
 
-        setViewTreeObserver();
+//        setViewTreeObserver();
+
+        SoftKeyBoardListener.setListener(this, new SoftKeyBoardListener.OnSoftKeyBoardChangeListener() {
+            @Override
+            public void keyBoardShow(int height) {
+                offset += mIdKeyboardVg.getHeight();
+                mManager.setOffset(offset);
+                Logger.e("keyBoardShow height:" + height + "-mPosition--" + mPosition + "--" + mAdapter.getItemCount() + "--" + offset);
+                mIrc.smoothScrollToPosition(mPosition);
+                offset = 0;
+            }
+
+            @Override
+            public void keyBoardHide(int height) {
+                Logger.e("keyBoardHide height:" + height + "-mPosition--" + mPosition);
+
+//                mManager.setOffset(mIdKeyboardVg.getHeight());
+//                mIrc.smoothScrollToPosition(mPosition + mAdapter.getHeaderLayoutCount());
+            }
+        });
 
     }
 
@@ -127,11 +153,11 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
 //        Logger.e("visibility--" + visibility);
         mIdKeyboardVg.setVisibility(visibility);//LinearLayout
         flag = true;
-//        measureCircleItemHighAndCommentItemOffset(commentConfig);
 
         if (commentConfig != null && CommentConfig.Type.REPLY.equals(commentConfig.getCommentType())) {
-            mPosition = commentConfig.getCirclePosition();
             mIdEditext.setHint("回复" + commentConfig.getName() + ":");
+            mPosition = commentConfig.getCirclePosition();
+            measureCircleItemHighAndCommentItemOffset(commentConfig);
         } else {
             mIdEditext.setHint("说点什么吧");
         }
@@ -153,45 +179,55 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
     }
 
     private void measureCircleItemHighAndCommentItemOffset(CommentConfig commentConfig) {
-//        if (commentConfig == null)
-//            return;
-//        int headViewCount = irc.getHeaderContainer().getChildCount();//IRecyclerView
-//        //当前选中的view
-//        int selectPostion = commentConfig.circlePosition + headViewCount + 1;//public int circlePosition;
-//        View selectCircleItem = linearLayoutManager.findViewByPosition(selectPostion);//  private LinearLayoutManager linearLayoutManager;
-//
-//        if (selectCircleItem != null) {
-//            mHeight = selectCircleItem.getHeight();
+
+        View selectCircleItem = mManager.findViewByPosition(mPosition);//  private LinearLayoutManager linearLayoutManager;
+
+        if (selectCircleItem != null) {
+            mHeight = selectCircleItem.getHeight();
+            Logger.e("mHeight--" + mHeight);
 //            mSelectCircleItemH = selectCircleItem.getHeight() - DisplayUtil.dip2px(48);//    private int mSelectCircleItemH;
-//            //获取评论view,计算出该view距离所属动态底部的距离
-//            if (commentConfig.commentType == CommentConfig.Type.REPLY) {
-//                //回复评论的情况
-//                CommentListView commentLv = (CommentListView) selectCircleItem.findViewById(R.id.commentList);
-//                if (commentLv != null) {
-//                    //找到要回复的评论view,计算出该view距离所属动态底部的距离
-//                    View selectCommentItem = commentLv.getChildAt(commentConfig.commentPosition);
-//                    if (selectCommentItem != null) {
-//                        //选择的commentItem距选择的CircleItem底部的距离
-//                        mSelectCommentItemOffset = 0;
-//                        View parentView = selectCommentItem;
-//                        do {
-//                            int subItemBottom = parentView.getBottom();
-//                            parentView = (View) parentView.getParent();
-//                            if (parentView != null) {
-//                                mSelectCommentItemOffset += (parentView.getHeight() - subItemBottom);
-//                            }
-//                        }
-//                        while (parentView != null && parentView != selectCircleItem);
-//                    }
-//                }
-//            }
-//        }
+            //获取评论view,计算出该view距离所属动态底部的距离
+            if (commentConfig.commentType == CommentConfig.Type.REPLY) {
+                Logger.e("== CommentConfig.Type.REPLY");
+                //回复评论的情况
+                CommentListView commentLv = (CommentListView) selectCircleItem.findViewById(R.id.commentList);
+                if (commentLv != null) {
+                    //找到要回复的评论view,计算出该view距离所属动态底部的距离
+                    View selectCommentItem = commentLv.getChildAt(commentConfig.commentPosition);
+                    Logger.e("commentLv!= null");
+                    if (selectCommentItem != null) {
+                        //选择的 commentItem 距选择的 CircleItem 底部的距离
+                        mSelectCommentItemOffset = 0;
+                        View parentView = selectCommentItem;
+                        int i = 0;
+                        do {
+                            // 相当于 当前 view 的底部 距离 父 view 的高度
+                            int subItemBottom = parentView.getBottom();
+
+                            parentView = (View) parentView.getParent();
+                            if (parentView != null) {
+                                i++;
+                                // 累加 当前 view 的底部 距离 父 view 底部 的高度差
+                                mSelectCommentItemOffset += (parentView.getHeight() - subItemBottom);
+                                Logger.e(i + "--subItemBottom--" + subItemBottom + "--height--" + (parentView.getHeight() - subItemBottom));
+                            }
+                        }
+                        while (parentView != null && parentView != selectCircleItem);
+
+                        offset -= mSelectCommentItemOffset;
+                        Logger.e("selectCommentItem != null----mHeight--" + mHeight + "-offset-" + offset + "--i--" + i);
+                    }
+                }
+            }
+        }
 
     }
 
     @Override
     public void onLoadMoreRequested() {
-
+        mAdapter.addData(ContansData.backDatas());
+        mAdapter.loadMoreComplete();
+//        mAdapter.loadMoreEnd();
     }
 
 //    protected void onResume() {
