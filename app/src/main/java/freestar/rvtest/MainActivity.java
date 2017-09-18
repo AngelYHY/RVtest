@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
         mNtb.findViewById(R.id.tv_back).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, Main3Activity.class));
+                startActivity(new Intent(MainActivity.this, Main4Activity.class));
             }
         });
 
