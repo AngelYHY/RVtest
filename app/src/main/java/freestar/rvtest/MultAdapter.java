@@ -1,6 +1,8 @@
 package freestar.rvtest;
 
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.view.View;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
@@ -44,15 +46,20 @@ public class MultAdapter extends BaseQuickAdapter<CircleItem, BaseViewHolder> {
 
         CommentListView commentList = holder.getView(R.id.commentList);
 
+//        commentList 需要动态设置显示 隐藏 否则会有复用问题
+
 //        Logger.e("hasFavort--" + hasFavort + "-hasComment-" + hasComment + "-position-" + holder.getLayoutPosition());
 
         if (hasFavort || hasComment) {
             //处理评论列表
             if (hasComment) {
+                commentList.setVisibility(View.VISIBLE);
                 CommentAdapter adapter = new CommentAdapter(mContext);
                 commentList.setAdapter(adapter);
                 adapter.setDatas(commentsDatas);
                 adapter.notifyDataSetChanged();
+                Log.e("FreeStar", "MultAdapter→→→convert:" + commentsDatas.size());
+
                 //点击评论
                 commentList.setOnItemClick(new CommentListView.OnItemClickListener() {
                     @Override
@@ -76,7 +83,12 @@ public class MultAdapter extends BaseQuickAdapter<CircleItem, BaseViewHolder> {
 //                        }
                     }
                 });
+            } else {
+                commentList.setVisibility(View.GONE);
             }
+
+        } else {
+            commentList.setVisibility(View.GONE);
         }
 
     }

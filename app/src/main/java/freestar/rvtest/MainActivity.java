@@ -17,11 +17,12 @@ import com.jaydenxiao.common.commonutils.KeyBordUtil;
 import com.jaydenxiao.common.commonwidget.NormalTitleBar;
 import com.orhanobut.logger.Logger;
 
+import java.util.List;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
 import static freestar.rvtest.R.id.irc;
-
 
 public class MainActivity extends AppCompatActivity implements MultAdapter.IDialogKeyBoard, BaseQuickAdapter.RequestLoadMoreListener {
 
@@ -80,8 +81,17 @@ public class MainActivity extends AppCompatActivity implements MultAdapter.IDial
         mIrc.addOnItemTouchListener(new OnItemChildClickListener() {
             @Override
             public void onSimpleItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+//                mPosition = position + mAdapter.getHeaderLayoutCount();
+//                updateEdittextBodyVisible(View.VISIBLE, null);
+
                 mPosition = position + mAdapter.getHeaderLayoutCount();
-                updateEdittextBodyVisible(View.VISIBLE, null);
+                List<CircleItem> data = mAdapter.getData();
+                List<CommentItem> replys = data.get(position).getReplys();
+                Logger.e(position + "--replys--" + replys.size());
+                replys.add(new CommentItem("8888", "郭老师", "6666", "郭芸", "你是猪吧"));
+
+                mAdapter.notifyItemChanged(mPosition);
+
             }
         });
 
